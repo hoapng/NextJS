@@ -1,3 +1,9 @@
+import AppHeader from "./app.header";
+
 export default function HomePage() {
-  return <div>Hello</div>;
+  return (
+    <div>
+      <AppHeader />
+    </div>
+  );
 }
