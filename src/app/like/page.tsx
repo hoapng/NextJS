@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+
 export default function LikePage() {
-  return <div>LikePage</div>;
+  const [t, setT] = useState("aaaaaaa");
+  return <div>LikePage {t}</div>;
 }

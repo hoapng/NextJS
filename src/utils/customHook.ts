@@ -11,7 +11,7 @@ export const useHasMounted = () => {
 };
 // WaveSurfer hook
 export const useWavesurfer = (containerRef: any, options: any) => {
-  const [wavesurfer, setWavesurfer] = useState<any>(null);
+  const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null);
 
   // Initialize wavesurfer when the container mounts
   // or any of the props change
