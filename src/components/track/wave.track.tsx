@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import WaveSurfer, { WaveSurferOptions } from "wavesurfer.js";
 import { useSearchParams } from "next/navigation";
 import { useWavesurfer } from "@/utils/customHook";
+import "./wave.scss";
 
 const WaveTrack = () => {
   const searchParams = useSearchParams();
@@ -64,10 +65,20 @@ const WaveTrack = () => {
   useEffect(() => {
     if (!wavesurfer) return;
     setIsPlaying(false);
+    const timeEl = document.querySelector("#time")!;
+    const durationEl = document.querySelector("#duration")!;
 
     const subscriptions = [
       wavesurfer.on("play", () => setIsPlaying(true)),
       wavesurfer.on("pause", () => setIsPlaying(false)),
+      wavesurfer.on(
+        "decode",
+        (duration) => (durationEl.textContent = formatTime(duration))
+      ),
+      wavesurfer.on(
+        "timeupdate",
+        (currentTime) => (timeEl.textContent = formatTime(currentTime))
+      ),
     ];
 
     return () => {
@@ -81,9 +92,20 @@ const WaveTrack = () => {
     }
   }, [wavesurfer]);
 
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secondsRemainder = Math.round(seconds) % 60;
+    const paddedSeconds = `0${secondsRemainder}`.slice(-2);
+    return `${minutes}:${paddedSeconds}`;
+  };
+
   return (
     <>
-      <div ref={containerRef}>wave track</div>
+      <div ref={containerRef} className="wave-form-container">
+        wave track
+        <div id="time">0:00</div>
+        <div id="duration">0:00</div>
+      </div>
       <button onClick={() => onPlayClick()}>
         {isPlaying === true ? "Pause" : "Play"}
       </button>
