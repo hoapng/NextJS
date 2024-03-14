@@ -66,7 +66,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function AppHeader() {
   const { data: session } = useSession();
-  console.log(">>>session: ", session);
+  // console.log(">>>session: ", session);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
