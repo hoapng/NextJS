@@ -207,7 +207,7 @@ const AuthSignIn = (props: any) => {
         </Grid>
       </Grid>
 
-      {/* <Snackbar
+      <Snackbar
         open={openMessage}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
@@ -220,7 +220,7 @@ const AuthSignIn = (props: any) => {
         >
           {resMessage}
         </Alert>
-      </Snackbar> */}
+      </Snackbar>
     </Box>
   );
 };
