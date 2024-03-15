@@ -1,4 +1,5 @@
 "use client";
+import { useTrackContext } from "@/lib/track.wrapper";
 import { useHasMounted } from "@/utils/customHook";
 import { Container } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
@@ -7,8 +8,13 @@ import "react-h5-audio-player/lib/styles.css";
 
 const AppFooter = () => {
   const hasMounted = useHasMounted();
+
   if (!hasMounted) return <></>; //fragment
-  //   console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+
+  const { currentTrack, setCurrentTrack } = useTrackContext() as ITrackContext;
+
+  console.log(">>> check currentTrack: ", currentTrack);
+
   return (
     <div style={{ marginTop: 50 }}>
       <AppBar
@@ -20,7 +26,13 @@ const AppFooter = () => {
         }}
       >
         <Container
-          sx={{ display: "flex", gap: 10, ".rhap_main": { gap: "30px" } }}
+          sx={{
+            display: "flex",
+            gap: 10,
+            ".rhap_main": {
+              gap: "30px",
+            },
+          }}
         >
           <AudioPlayer
             layout="horizontal-reverse"
@@ -40,7 +52,7 @@ const AppFooter = () => {
               minWidth: 100,
             }}
           >
-            <div style={{ color: "#ccc" }}>GH</div>
+            <div style={{ color: "#ccc" }}>Eric</div>
             <div style={{ color: "black" }}>Who am I ?</div>
           </div>
         </Container>
