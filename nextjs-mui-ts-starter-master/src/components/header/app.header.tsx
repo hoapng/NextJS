@@ -111,9 +111,13 @@ export default function AppHeader() {
       transformOrigin={{ horizontal: "right", vertical: "top" }}
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
     >
-      <MenuItem>
+      <MenuItem
+        onClick={() => {
+          handleMenuClose();
+        }}
+      >
         <Link
-          href={"/profile"}
+          href={`/profile/${session?.user?._id}`}
           style={{ color: "unset", textDecoration: "unset" }}
         >
           Profile
