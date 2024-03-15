@@ -1,3 +1,4 @@
+"use client";
 import React, { useCallback } from "react";
 import { FileWithPath, useDropzone } from "react-dropzone";
 import "./theme.css";
