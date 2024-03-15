@@ -3,17 +3,28 @@ import { useTrackContext } from "@/lib/track.wrapper";
 import { useHasMounted } from "@/utils/customHook";
 import { Container } from "@mui/material";
 import AppBar from "@mui/material/AppBar";
+import { useRef } from "react";
 import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 
 const AppFooter = () => {
   const hasMounted = useHasMounted();
+  const playerRef = useRef(null);
 
   if (!hasMounted) return <></>; //fragment
 
   const { currentTrack, setCurrentTrack } = useTrackContext() as ITrackContext;
 
   console.log(">>> check currentTrack: ", currentTrack);
+
+  if (playerRef?.current && currentTrack?.isPlaying === false) {
+    //@ts-ignore
+    playerRef?.current?.audio?.current?.pause();
+  }
+  if (playerRef?.current && currentTrack?.isPlaying === true) {
+    //@ts-ignore
+    playerRef?.current?.audio?.current?.play();
+  }
 
   return (
     <div style={{ marginTop: 50 }}>
@@ -35,12 +46,19 @@ const AppFooter = () => {
           }}
         >
           <AudioPlayer
+            ref={playerRef}
             layout="horizontal-reverse"
             src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/tracks/hoidanit.mp3`}
             volume={0.5}
             style={{
               boxShadow: "unset",
               background: "#f2f2f2",
+            }}
+            onPause={() => {
+              setCurrentTrack({ ...currentTrack, isPlaying: false });
+            }}
+            onPlay={() => {
+              setCurrentTrack({ ...currentTrack, isPlaying: true });
             }}
           />
           <div
