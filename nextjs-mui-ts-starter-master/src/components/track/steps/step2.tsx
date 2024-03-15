@@ -12,6 +12,9 @@ import LinearProgress, {
 import Grid from "@mui/material/Grid";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+import { sendRequest } from "@/utils/api";
 
 function LinearProgressWithLabel(
   props: LinearProgressProps & { value: number }
@@ -30,26 +33,14 @@ function LinearProgressWithLabel(
   );
 }
 
-function LinearWithValueLabel() {
-  const [progress, setProgress] = React.useState(10);
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prevProgress) =>
-        prevProgress >= 100 ? 10 : prevProgress + 10
-      );
-    }, 800);
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
-
+function LinearWithValueLabel(props: IProps) {
   return (
     <Box sx={{ width: "100%" }}>
-      <LinearProgressWithLabel value={progress} />
+      <LinearProgressWithLabel value={props.trackUpload.percent} />
     </Box>
   );
 }
+
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
   clipPath: "inset(50%)",
@@ -62,10 +53,42 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-function InputFileUpload() {
+function InputFileUpload(props: any) {
+  const { setInfo, info } = props;
+  const { data: session } = useSession();
+
+  const handleUpload = async (image: any) => {
+    const formData = new FormData();
+    formData.append("fileUpload", image);
+    try {
+      const res = await axios.post(
+        "http://localhost:8000/api/v1/files/upload",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            target_type: "images",
+          },
+        }
+      );
+      setInfo({
+        ...info,
+        imgUrl: res.data.data.fileName,
+      });
+    } catch (error) {
+      //@ts-ignore
+      alert(error?.response?.data?.message);
+    }
+  };
+
   return (
     <Button
-      onClick={(e) => e.preventDefault()}
+      onChange={(e) => {
+        const event = e.target as HTMLInputElement;
+        if (event.files) {
+          handleUpload(event.files[0]);
+        }
+      }}
       component="label"
       variant="contained"
       startIcon={<CloudUploadIcon />}
@@ -76,7 +99,43 @@ function InputFileUpload() {
   );
 }
 
-const Step2 = () => {
+interface IProps {
+  trackUpload: {
+    fileName: string;
+    percent: number;
+    uploadedTrackName: string;
+  };
+}
+
+interface INewTrack {
+  title: string;
+  description: string;
+  trackUrl: string;
+  imgUrl: string;
+  category: string;
+}
+
+const Step2 = (props: IProps) => {
+  const { data: session } = useSession();
+
+  const { trackUpload } = props;
+  const [info, setInfo] = React.useState<INewTrack>({
+    title: "",
+    description: "",
+    trackUrl: "",
+    imgUrl: "",
+    category: "",
+  });
+
+  React.useEffect(() => {
+    if (trackUpload && trackUpload.uploadedTrackName) {
+      setInfo({
+        ...info,
+        trackUrl: trackUpload.uploadedTrackName,
+      });
+    }
+  }, [trackUpload]);
+
   const category = [
     {
       value: "CHILL",
@@ -92,11 +151,33 @@ const Step2 = () => {
     },
   ];
 
+  const handleSubmitForm = async () => {
+    const res = await sendRequest<IBackendRes<ITrackTop[]>>({
+      url: "http://localhost:8000/api/v1/tracks",
+      method: "POST",
+      body: {
+        title: info.title,
+        description: info.description,
+        trackUrl: info.trackUrl,
+        imgUrl: info.imgUrl,
+        category: info.category,
+      },
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+    });
+    if (res.data) {
+      alert("create success");
+    } else {
+      alert(res.message);
+    }
+  };
+
   return (
     <div>
       <div>
-        <div>Your uploading track:</div>
-        <LinearWithValueLabel />
+        <div>{trackUpload.fileName}</div>
+        <LinearWithValueLabel trackUpload={trackUpload} />
       </div>
 
       <Grid container spacing={2} mt={5}>
@@ -113,28 +194,55 @@ const Step2 = () => {
           }}
         >
           <div style={{ height: 250, width: 250, background: "#ccc" }}>
-            <div></div>
+            <div>
+              {info.imgUrl && (
+                <img
+                  height={250}
+                  width={250}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${info.imgUrl}`}
+                />
+              )}
+            </div>
           </div>
           <div>
-            <InputFileUpload />
+            <InputFileUpload setInfo={setInfo} info={info} />
           </div>
         </Grid>
         <Grid item xs={6} md={8}>
           <TextField
-            id="standard-basic"
+            value={info?.title}
+            onChange={(e) =>
+              setInfo({
+                ...info,
+                title: e.target.value,
+              })
+            }
             label="Title"
             variant="standard"
             fullWidth
             margin="dense"
           />
           <TextField
-            id="standard-basic"
+            value={info?.description}
+            onChange={(e) =>
+              setInfo({
+                ...info,
+                description: e.target.value,
+              })
+            }
             label="Description"
             variant="standard"
             fullWidth
             margin="dense"
           />
           <TextField
+            value={info?.category}
+            onChange={(e) =>
+              setInfo({
+                ...info,
+                category: e.target.value,
+              })
+            }
             sx={{
               mt: 3,
             }}
@@ -143,7 +251,6 @@ const Step2 = () => {
             label="Category"
             fullWidth
             variant="standard"
-            //   defaultValue="EUR"
           >
             {category.map((option) => (
               <MenuItem key={option.value} value={option.value}>
@@ -156,6 +263,7 @@ const Step2 = () => {
             sx={{
               mt: 5,
             }}
+            onClick={() => handleSubmitForm()}
           >
             Save
           </Button>
