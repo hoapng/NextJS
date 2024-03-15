@@ -13,7 +13,6 @@ const DetailTrackPage = (props: any) => {
 
   return (
     <Container>
-      DetailTrackPage
       <div>
         <WaveTrack />
       </div>

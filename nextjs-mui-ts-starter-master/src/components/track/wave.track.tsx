@@ -8,6 +8,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import "./wave.scss";
 import { Tooltip } from "@mui/material";
+import { sendRequest } from "@/utils/api";
 
 const WaveTrack = () => {
   const searchParams = useSearchParams();
@@ -17,6 +18,8 @@ const WaveTrack = () => {
 
   const [time, setTime] = useState<string>("0:00");
   const [duration, setDuration] = useState<string>("0:00");
+
+  const id = searchParams.get("id");
 
   const optionsMemo = useMemo((): Omit<WaveSurferOptions, "container"> => {
     let gradient, progressGradient;
@@ -79,6 +82,8 @@ const WaveTrack = () => {
   const wavesurfer = useWavesurfer(containerRef, optionsMemo);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
+  const [trackInfo, setTrackInfo] = useState<ITrackTop | null>(null);
+
   // Initialize wavesurfer when the container mounts
   // or any of the props change
   useEffect(() => {
@@ -110,6 +115,19 @@ const WaveTrack = () => {
       subscriptions.forEach((unsub) => unsub());
     };
   }, [wavesurfer]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await sendRequest<IBackendRes<ITrackTop>>({
+        url: `http://localhost:8000/api/v1/tracks/${id}`,
+        method: "GET",
+      });
+      if (res && res.data) {
+        setTrackInfo(res.data);
+      }
+    };
+    fetchData();
+  }, [id]);
 
   // On play button click
   const onPlayClick = useCallback(() => {
@@ -209,7 +227,7 @@ const WaveTrack = () => {
                   color: "white",
                 }}
               >
-                Song
+                {trackInfo?.title}
               </div>
               <div
                 style={{
@@ -221,7 +239,7 @@ const WaveTrack = () => {
                   color: "white",
                 }}
               >
-                Author
+                {trackInfo?.description}
               </div>
             </div>
           </div>
@@ -243,7 +261,7 @@ const WaveTrack = () => {
             <div className="comment" style={{ position: "relative" }}>
               {arrComments.map((item) => {
                 return (
-                  <Tooltip title={item.content} arrow>
+                  <Tooltip title={item.content} arrow key={item.id}>
                     <img
                       onPointerMove={(e) => {
                         const hover = hoverRef.current!;

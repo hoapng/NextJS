@@ -10,10 +10,9 @@ import "react-h5-audio-player/lib/styles.css";
 const AppFooter = () => {
   const hasMounted = useHasMounted();
   const playerRef = useRef(null);
+  const { currentTrack, setCurrentTrack } = useTrackContext() as ITrackContext;
 
   if (!hasMounted) return <></>; //fragment
-
-  const { currentTrack, setCurrentTrack } = useTrackContext() as ITrackContext;
 
   console.log(">>> check currentTrack: ", currentTrack);
 
@@ -70,8 +69,8 @@ const AppFooter = () => {
               minWidth: 100,
             }}
           >
-            <div style={{ color: "#ccc" }}>Eric</div>
-            <div style={{ color: "black" }}>Who am I ?</div>
+            <div style={{ color: "#ccc" }}>{currentTrack.description}</div>
+            <div style={{ color: "black" }}>{currentTrack.title}</div>
           </div>
         </Container>
       </AppBar>
