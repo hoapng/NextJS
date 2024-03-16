@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useWavesurfer } from "@/utils/customHook";
 import { WaveSurferOptions } from "wavesurfer.js";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -9,7 +9,7 @@ import PauseIcon from "@mui/icons-material/Pause";
 import "./wave.scss";
 import { Tooltip } from "@mui/material";
 import { useTrackContext } from "@/lib/track.wrapper";
-import { fetchDefaultImages } from "@/utils/api";
+import { fetchDefaultImages, sendRequest } from "@/utils/api";
 import CommentTrack from "./comment.track";
 import LikeTrack from "@/types/like.track";
 
@@ -27,6 +27,9 @@ const WaveTrack = (props: IProps) => {
   const [time, setTime] = useState<string>("0:00");
   const [duration, setDuration] = useState<string>("0:00");
   const { currentTrack, setCurrentTrack } = useTrackContext() as ITrackContext;
+
+  const router = useRouter();
+  const firstViewRef = useRef(true);
 
   const optionsMemo = useMemo((): Omit<WaveSurferOptions, "container"> => {
     let gradient, progressGradient;
@@ -164,6 +167,21 @@ const WaveTrack = (props: IProps) => {
     return `${percent}%`;
   };
 
+  const handleIncreaseView = async () => {
+    if (firstViewRef.current) {
+      await sendRequest<IBackendRes<IModelPaginate<ITrackLike>>>({
+        url: `http://localhost:8000/api/v1/tracks/increase-view`,
+        method: "POST",
+        body: {
+          trackId: track?._id,
+        },
+      });
+
+      router.refresh();
+      firstViewRef.current = false;
+    }
+  };
+
   useEffect(() => {
     if (wavesurfer && currentTrack.isPlaying) {
       wavesurfer.pause();
@@ -202,6 +220,7 @@ const WaveTrack = (props: IProps) => {
               <div
                 onClick={() => {
                   onPlayClick();
+                  handleIncreaseView();
                   if (track && wavesurfer) {
                     setCurrentTrack({ ...currentTrack, isPlaying: false });
                   }
