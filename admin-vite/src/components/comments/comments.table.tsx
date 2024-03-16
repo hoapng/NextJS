@@ -3,18 +3,30 @@ import { useEffect, useState } from "react";
 import { Table, Button, notification, Popconfirm, message } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
-export interface ITracks {
+export interface IComments {
   _id: string;
-  title: string;
-  description: string;
-  category: string;
-  imgUrl: string;
-  trackUrl: string;
-  countLike: number;
-  countPlay: number;
+  content: string;
+  moment: number;
+  user: {
+    _id: string;
+    email: string;
+    name: string;
+    role: string;
+    type: string;
+  };
+  track: {
+    _id: string;
+    title: string;
+    description: string;
+    trackUrl: string;
+  };
+  isDeleted: boolean;
+  __v: 0;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const TracksTable = () => {
+const CommentsTable = () => {
   const [listUsers, setListUsers] = useState([]);
 
   const access_token = localStorage.getItem("access_token") as string;
@@ -34,7 +46,7 @@ const TracksTable = () => {
   //Promise
   const getData = async () => {
     const res = await fetch(
-      `http://localhost:8000/api/v1/tracks?current=${meta.current}&pageSize=${meta.pageSize}`,
+      `http://localhost:8000/api/v1/comments?current=${meta.current}&pageSize=${meta.pageSize}`,
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -58,9 +70,9 @@ const TracksTable = () => {
     });
   };
 
-  const confirm = async (track: ITracks) => {
+  const confirm = async (comment: IComments) => {
     const res = await fetch(
-      `http://localhost:8000/api/v1/tracks/${track._id}`,
+      `http://localhost:8000/api/v1/comments/${comment._id}`,
       {
         method: "DELETE",
         headers: {
@@ -83,7 +95,7 @@ const TracksTable = () => {
     }
   };
 
-  const columns: ColumnsType<ITracks> = [
+  const columns: ColumnsType<IComments> = [
     {
       dataIndex: "_id",
       title: "STT",
@@ -92,24 +104,16 @@ const TracksTable = () => {
       },
     },
     {
-      title: "Title",
-      dataIndex: "title",
+      title: "content",
+      dataIndex: "content",
     },
     {
-      title: "Description",
-      dataIndex: "description",
+      title: "track",
+      dataIndex: ["track", "title"],
     },
     {
-      title: "Category",
-      dataIndex: "category",
-    },
-    {
-      title: "Track URL",
-      dataIndex: "trackURL",
-    },
-    {
-      title: "Uploader",
-      dataIndex: ["uploader", "name"],
+      title: "user",
+      dataIndex: ["user", "email"],
     },
     {
       title: "Actions",
@@ -118,7 +122,7 @@ const TracksTable = () => {
           <div>
             <Popconfirm
               title="Delete the user"
-              description={`Are you sure to delete this track. name = ${record.title}?`}
+              description={`Are you sure to delete this comment. name = ${record.content}?`}
               onConfirm={() => confirm(record)}
               okText="Yes"
               cancelText="No"
@@ -135,7 +139,7 @@ const TracksTable = () => {
 
   const handleOnChange = async (page: number, pageSize: number) => {
     const res = await fetch(
-      `http://localhost:8000/api/v1/tracks?current=${page}&pageSize=${pageSize}`,
+      `http://localhost:8000/api/v1/comments?current=${page}&pageSize=${pageSize}`,
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -168,7 +172,7 @@ const TracksTable = () => {
           alignItems: "center",
         }}
       >
-        <h2>Table Tracks</h2>
+        <h2>Table Comments</h2>
       </div>
 
       <Table
@@ -190,4 +194,4 @@ const TracksTable = () => {
   );
 };
 
-export default TracksTable;
+export default CommentsTable;
